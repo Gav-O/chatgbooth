@@ -27,7 +27,7 @@ const ChatLayout: React.FC = () => {
       </div>
       
       {/* Main content */}
-      <div className="flex-1 flex flex-col h-full w-full lg:pl-72">
+      <div className="flex-1 flex flex-col h-full w-full lg:w-[calc(100%-18rem)]">
         <ChatArea />
       </div>
     </div>
