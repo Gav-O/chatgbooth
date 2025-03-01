@@ -23,6 +23,7 @@ interface ChatContextType {
   createNewConversation: () => void;
   isMobileSidebarOpen: boolean;
   toggleMobileSidebar: () => void;
+  isWaitingForResponse: boolean;
 }
 
 // Sample conversation data
@@ -106,6 +107,7 @@ export const ChatProvider: React.FC<{ children: React.ReactNode }> = ({ children
   const [conversations, setConversations] = useState<ConversationType[]>(initialConversations);
   const [activeConversationId, setActiveConversationId] = useState<string | null>('1');
   const [isMobileSidebarOpen, setIsMobileSidebarOpen] = useState(false);
+  const [isWaitingForResponse, setIsWaitingForResponse] = useState(false);
 
   const toggleMobileSidebar = () => {
     setIsMobileSidebarOpen(prev => !prev);
@@ -113,6 +115,14 @@ export const ChatProvider: React.FC<{ children: React.ReactNode }> = ({ children
 
   const addMessage = (message: Omit<MessageType, 'id' | 'timestamp'>) => {
     if (!activeConversationId) return;
+
+    // If this is a user message, set waiting state to true
+    if (message.role === 'user') {
+      setIsWaitingForResponse(true);
+    } else if (message.role === 'assistant') {
+      // If this is an assistant message, set waiting state to false
+      setIsWaitingForResponse(false);
+    }
 
     setConversations(prevConversations => {
       return prevConversations.map(conv => {
@@ -146,6 +156,9 @@ export const ChatProvider: React.FC<{ children: React.ReactNode }> = ({ children
     setConversations(prev => [newConversation, ...prev]);
     setActiveConversationId(newId);
     
+    // Reset waiting state when creating a new conversation
+    setIsWaitingForResponse(false);
+    
     // Close mobile sidebar when creating a new conversation
     if (isMobileSidebarOpen) {
       setIsMobileSidebarOpen(false);
@@ -162,6 +175,7 @@ export const ChatProvider: React.FC<{ children: React.ReactNode }> = ({ children
         createNewConversation,
         isMobileSidebarOpen,
         toggleMobileSidebar,
+        isWaitingForResponse,
       }}
     >
       {children}

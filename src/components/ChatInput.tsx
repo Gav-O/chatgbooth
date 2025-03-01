@@ -1,6 +1,7 @@
 
 import React, { useState, useRef, useEffect } from "react";
 import { Send } from "lucide-react";
+import { useChat } from "@/context/ChatContext";
 
 interface ChatInputProps {
   onSendMessage: (content: string) => void;
@@ -9,6 +10,7 @@ interface ChatInputProps {
 const ChatInput: React.FC<ChatInputProps> = ({ onSendMessage }) => {
   const [message, setMessage] = useState("");
   const textareaRef = useRef<HTMLTextAreaElement>(null);
+  const { isWaitingForResponse } = useChat();
   
   // Auto-resize textarea based on content
   useEffect(() => {
@@ -22,7 +24,7 @@ const ChatInput: React.FC<ChatInputProps> = ({ onSendMessage }) => {
   
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
-    if (message.trim()) {
+    if (message.trim() && !isWaitingForResponse) {
       onSendMessage(message);
       setMessage("");
     }
@@ -30,7 +32,7 @@ const ChatInput: React.FC<ChatInputProps> = ({ onSendMessage }) => {
   
   const handleKeyDown = (e: React.KeyboardEvent<HTMLTextAreaElement>) => {
     // Submit on Enter (without Shift)
-    if (e.key === "Enter" && !e.shiftKey) {
+    if (e.key === "Enter" && !e.shiftKey && !isWaitingForResponse) {
       e.preventDefault();
       handleSubmit(e);
     }
@@ -44,15 +46,16 @@ const ChatInput: React.FC<ChatInputProps> = ({ onSendMessage }) => {
           value={message}
           onChange={(e) => setMessage(e.target.value)}
           onKeyDown={handleKeyDown}
-          placeholder="Type a message..."
-          className="w-full resize-none py-3 px-4 pr-12 rounded-xl border bg-background focus:outline-none focus:ring-2 focus:ring-primary/50 text-input-shadow transition-shadow"
+          placeholder={isWaitingForResponse ? "Waiting for response..." : "Type a message..."}
+          className={`w-full resize-none py-3 px-4 pr-12 rounded-xl border bg-background focus:outline-none focus:ring-2 focus:ring-primary/50 text-input-shadow transition-shadow ${isWaitingForResponse ? 'opacity-70' : ''}`}
           rows={1}
           style={{ minHeight: "56px", maxHeight: "200px" }}
+          disabled={isWaitingForResponse}
         />
         
         <button
           type="submit"
-          disabled={!message.trim()}
+          disabled={!message.trim() || isWaitingForResponse}
           className="absolute right-3 p-2 rounded-md bg-primary text-primary-foreground opacity-90 hover:opacity-100 transition-opacity disabled:opacity-50 disabled:cursor-not-allowed"
           aria-label="Send message"
         >
@@ -61,7 +64,9 @@ const ChatInput: React.FC<ChatInputProps> = ({ onSendMessage }) => {
       </div>
       
       <p className="text-xs text-muted-foreground mt-2 text-center">
-        Press Enter to send, Shift+Enter for a new line
+        {isWaitingForResponse 
+          ? "Please wait for a response..." 
+          : "Press Enter to send, Shift+Enter for a new line"}
       </p>
     </form>
   );
