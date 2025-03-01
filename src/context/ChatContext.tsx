@@ -41,7 +41,7 @@ const initialConversations: ConversationType[] = [
       {
         id: '2',
         role: 'assistant',
-        content: 'I'd be happy to help you design a website for your business. Could you tell me more about what kind of business you have and what you'd like to achieve with your website?',
+        content: "I'd be happy to help you design a website for your business. Could you tell me more about what kind of business you have and what you'd like to achieve with your website?",
         timestamp: new Date(Date.now() - 3500000),
       },
     ],
