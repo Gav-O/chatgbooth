@@ -12,29 +12,82 @@ const ChatArea: React.FC = () => {
         ? conversations.find(c => c.id === activeConversationId)
         : null;
 
-      const res = await axios.post("http://localhost:11434/api/generate", {
-        model: "llama3.2",
-        prompt: prompt,
-        stream: false,
-        context: activeConversation?.context || [], // Use the conversation's context
+      const response = await fetch("http://localhost:11434/api/generate", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({
+          model: "llama3.2",
+          prompt: prompt,
+          stream: true,
+          context: activeConversation?.context || [], // Use the conversation's context
+        }),
       });
 
-      // Update the conversation context with the new response context
-      // if (activeConversation) {
-      //   addMessage(
-      //     {
-      //       role: "assistant",
-      //       content: res.data.response,
-      //     },
-      //     res.data.context || [] // Pass the new context to addMessage
-      //   );
-      // }
+      const reader = response.body?.getReader();
+      let result = "";
+      let finalContext: any[] = []; // Store the final context from the server
 
-      return res.data; // Return AI's answer
+      if (reader) {
+        while (true) {
+          const { done, value } = await reader.read();
+          if (done) break;
+
+          const chunk = new TextDecoder().decode(value);
+          const lines = chunk.split("\n"); // Split the chunk by newlines
+
+          for (const line of lines) {
+            if (line.trim() === "") continue; // Skip empty lines
+
+            try {
+              const parsedChunk = JSON.parse(line); // Parse each line as JSON
+              result += parsedChunk.response;
+
+              // Update the message with the new chunk
+              updateStreamingMessage(result);
+
+              // Store the context from the server's response
+              if (parsedChunk.context) {
+                finalContext = parsedChunk.context;
+              }
+            } catch (error) {
+              console.error("Error parsing chunk:", error);
+            }
+          }
+        }
+      }
+
+      // Return the final result and context
+      return { response: result, context: finalContext };
     } catch (error) {
       console.error("Error:", error);
-      return "Error: Could not get a response.";
+      return { response: "Error: Could not get a response.", context: [] };
     }
+  };
+
+  const updateStreamingMessage = (content: string) => {
+    if (!activeConversationId) return;
+
+    setConversations(prevConversations => {
+      return prevConversations.map(conv => {
+        if (conv.id === activeConversationId) {
+          const lastMessage = conv.messages[conv.messages.length - 1];
+          if (lastMessage && lastMessage.role === "assistant") {
+            // Update the last assistant message
+            return {
+              ...conv,
+              messages: conv.messages.map((msg, index) =>
+                index === conv.messages.length - 1
+                  ? { ...msg, content: content }
+                  : msg
+              ),
+            };
+          }
+        }
+        return conv;
+      });
+    });
   };
 
   const {
@@ -43,6 +96,7 @@ const ChatArea: React.FC = () => {
     addMessage,
     toggleMobileSidebar,
     createNewConversation,
+    setConversations,
   } = useChat();
 
   const activeConversation = activeConversationId
@@ -63,22 +117,32 @@ const ChatArea: React.FC = () => {
       content,
     });
 
-    // Simulate AI response after a short delay
-    // setTimeout(() => {
-    //   addMessage({
-    //     role: "assistant",
-    //     content: `Simulated to ${content}`,
-    //   });
-    // }, 1000);
-    askAI(content).then(data =>
-      addMessage(
-        {
-          role: "assistant",
-          content: data.response,
-        },
-        data.context || []
-      )
-    );
+    // Add a placeholder assistant message
+    addMessage({
+      role: "assistant",
+      content: "", // Empty content for the placeholder
+    });
+
+    // Start streaming the AI response
+    askAI(content).then(({ response, context }) => {
+      // Update the assistant's message with the final response and context
+      updateStreamingMessage(response);
+
+      // Update the conversation's context with the new context
+      if (activeConversationId) {
+        setConversations(prevConversations =>
+          prevConversations.map(conv => {
+            if (conv.id === activeConversationId) {
+              return {
+                ...conv,
+                context: context || conv.context, // Use the new context or fall back to the existing context
+              };
+            }
+            return conv;
+          })
+        );
+      }
+    });
   };
 
   return (

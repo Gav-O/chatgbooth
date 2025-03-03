@@ -29,9 +29,9 @@ interface ChatContextType {
   isMobileSidebarOpen: boolean;
   toggleMobileSidebar: () => void;
   isWaitingForResponse: boolean;
+  setConversations: React.Dispatch<React.SetStateAction<ConversationType[]>>; // Add this line
 }
 
-// Sample conversation data
 const initialConversations: ConversationType[] = [
   {
     id: "1",
@@ -65,20 +65,17 @@ export const ChatProvider: React.FC<{ children: React.ReactNode }> = ({
   ) => {
     if (!activeConversationId) return;
 
-    // If this is a user message, set waiting state to true
-    if (message.role === "user") {
-      setIsWaitingForResponse(true);
-    } else if (message.role === "assistant") {
-      // If this is an assistant message, set waiting state to false
-      setIsWaitingForResponse(false);
-    }
+    // Generate a unique ID using Date.now() and a random number
+    const uniqueId = `${Date.now()}-${Math.random()
+      .toString(36)
+      .substring(2, 9)}`;
 
     setConversations(prevConversations => {
       return prevConversations.map(conv => {
         if (conv.id === activeConversationId) {
           const newMessage = {
             ...message,
-            id: Date.now().toString(),
+            id: uniqueId, // Use the unique ID
             timestamp: new Date(),
           };
 
@@ -86,7 +83,7 @@ export const ChatProvider: React.FC<{ children: React.ReactNode }> = ({
             ...conv,
             lastMessageTime: new Date(),
             messages: [...conv.messages, newMessage],
-            context: context || conv.context, // Use the provided context or fall back to the existing context
+            context: context || conv.context,
           };
         }
         return conv;
@@ -155,6 +152,7 @@ export const ChatProvider: React.FC<{ children: React.ReactNode }> = ({
         isMobileSidebarOpen,
         toggleMobileSidebar,
         isWaitingForResponse,
+        setConversations, // Add this line
       }}>
       {children}
     </ChatContext.Provider>
