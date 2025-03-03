@@ -22,8 +22,10 @@ interface ChatContextType {
   addMessage: (
     message: Omit<MessageType, "id" | "timestamp">,
     context?: any[]
-  ) => void; // Update this line
+  ) => void;
   createNewConversation: () => void;
+  deleteConversation: (id: string) => void;
+  renameConversation: (id: string, newTitle: string) => void;
   isMobileSidebarOpen: boolean;
   toggleMobileSidebar: () => void;
   isWaitingForResponse: boolean;
@@ -184,6 +186,34 @@ export const ChatProvider: React.FC<{ children: React.ReactNode }> = ({
     }
   };
 
+  const deleteConversation = (id: string) => {
+    // Check if we're deleting the active conversation
+    const isActiveConversation = activeConversationId === id;
+    
+    // Filter out the conversation to delete
+    setConversations(prev => {
+      const filtered = prev.filter(conv => conv.id !== id);
+      
+      // If we deleted the active conversation, set a new active conversation
+      if (isActiveConversation && filtered.length > 0) {
+        setActiveConversationId(filtered[0].id);
+      } else if (filtered.length === 0) {
+        // If no conversations left, create a new one
+        createNewConversation();
+      }
+      
+      return filtered;
+    });
+  };
+
+  const renameConversation = (id: string, newTitle: string) => {
+    setConversations(prev =>
+      prev.map(conv =>
+        conv.id === id ? { ...conv, title: newTitle } : conv
+      )
+    );
+  };
+
   return (
     <ChatContext.Provider
       value={{
@@ -192,6 +222,8 @@ export const ChatProvider: React.FC<{ children: React.ReactNode }> = ({
         setActiveConversationId,
         addMessage,
         createNewConversation,
+        deleteConversation,
+        renameConversation,
         isMobileSidebarOpen,
         toggleMobileSidebar,
         isWaitingForResponse,
