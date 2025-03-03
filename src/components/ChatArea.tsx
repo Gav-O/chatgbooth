@@ -44,8 +44,8 @@ const ChatArea: React.FC = () => {
               const parsedChunk = JSON.parse(line); // Parse each line as JSON
               result += parsedChunk.response;
 
-              // Update the message with the new chunk
-              updateStreamingMessage(result);
+              // Update the message with the new chunk and indicate streaming is ongoing
+              updateStreamingMessage(result, true); // Pass `true` to indicate streaming is ongoing
 
               // Store the context from the server's response
               if (parsedChunk.context) {
@@ -65,8 +65,10 @@ const ChatArea: React.FC = () => {
       return { response: "Error: Could not get a response.", context: [] };
     }
   };
-
-  const updateStreamingMessage = (content: string) => {
+  const updateStreamingMessage = (
+    content: string,
+    isStreaming: boolean = true
+  ) => {
     if (!activeConversationId) return;
 
     setConversations(prevConversations => {
@@ -79,7 +81,10 @@ const ChatArea: React.FC = () => {
               ...conv,
               messages: conv.messages.map((msg, index) =>
                 index === conv.messages.length - 1
-                  ? { ...msg, content: content }
+                  ? {
+                      ...msg,
+                      content: isStreaming ? `${content} ⬤` : content, // Add ⬤ while streaming
+                    }
                   : msg
               ),
             };
@@ -117,16 +122,16 @@ const ChatArea: React.FC = () => {
       content,
     });
 
-    // Add a placeholder assistant message
+    // Add a placeholder assistant message with ⬤
     addMessage({
       role: "assistant",
-      content: "", // Empty content for the placeholder
+      content: "⬤", // Start with ⬤ to indicate streaming
     });
 
     // Start streaming the AI response
     askAI(content).then(({ response, context }) => {
-      // Update the assistant's message with the final response and context
-      updateStreamingMessage(response);
+      // Update the assistant's message with the final response (without ⬤)
+      updateStreamingMessage(response, false); // Pass `false` to indicate streaming is complete
 
       // Update the conversation's context with the new context
       if (activeConversationId) {
