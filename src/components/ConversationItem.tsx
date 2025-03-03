@@ -1,4 +1,3 @@
-
 import React, { useState, useRef } from "react";
 import { MessageSquare, MoreVertical, Trash, Pencil } from "lucide-react";
 import { useChat } from "@/context/ChatContext";
@@ -36,7 +35,6 @@ const ConversationItem: React.FC<ConversationItemProps> = ({ conversation }) => 
   const handleClick = () => {
     if (!isRenaming) {
       setActiveConversationId(conversation.id);
-      // On mobile, close the sidebar after selecting a conversation
       if (window.innerWidth < 1024) {
         toggleMobileSidebar();
       }
@@ -62,7 +60,6 @@ const ConversationItem: React.FC<ConversationItemProps> = ({ conversation }) => 
     e.stopPropagation();
     setIsRenaming(true);
     setShowMenu(false);
-    // Focus the input after it renders
     setTimeout(() => {
       inputRef.current?.focus();
       inputRef.current?.select();
@@ -88,7 +85,6 @@ const ConversationItem: React.FC<ConversationItemProps> = ({ conversation }) => 
     setIsRenaming(false);
   };
 
-  // Close menu when clicking outside
   React.useEffect(() => {
     const handleClickOutside = (event: MouseEvent) => {
       if (menuRef.current && !menuRef.current.contains(event.target as Node)) {
@@ -104,7 +100,6 @@ const ConversationItem: React.FC<ConversationItemProps> = ({ conversation }) => 
     };
   }, [showMenu]);
   
-  // Format the timestamp
   const formatDate = (date: Date) => {
     const now = new Date();
     const diffInDays = Math.floor((now.getTime() - date.getTime()) / (1000 * 60 * 60 * 24));
@@ -183,9 +178,9 @@ const ConversationItem: React.FC<ConversationItemProps> = ({ conversation }) => 
               <div className="absolute right-0 mt-1 w-36 bg-popover border border-border rounded-md shadow-md z-10">
                 <button
                   onClick={handleRenameClick}
-                  className="flex items-center gap-2 w-full px-3 py-2 text-sm text-left hover:bg-sidebar-accent/30 transition-colors"
+                  className="flex items-center gap-2 w-full px-3 py-2 text-sm text-left hover:bg-sidebar-accent/30 transition-colors text-black"
                 >
-                  <Pencil size={14} /> Rename
+                  <Pencil size={14} className="text-black" /> Rename
                 </button>
                 <button
                   onClick={handleDelete}
