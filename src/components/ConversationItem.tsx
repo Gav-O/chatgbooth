@@ -143,10 +143,10 @@ const ConversationItem: React.FC<ConversationItemProps> = ({ conversation }) => 
           <button type="submit" className="sr-only">Save</button>
         </form>
       ) : (
-        <>
-          <button onClick={handleClick} className="flex items-start gap-3 flex-1 text-left">
+        <div className="flex items-start w-full justify-between">
+          <button onClick={handleClick} className="flex items-start gap-3 flex-1 text-left overflow-hidden">
             <MessageSquare size={18} className="mt-0.5 flex-shrink-0" />
-            <div className="flex-1 min-w-0">
+            <div className="flex-1 min-w-0 overflow-hidden">
               <div className="flex justify-between items-baseline w-full">
                 <h3 className="font-medium truncate">{conversation.title}</h3>
                 <span className="text-xs opacity-60 ml-2 flex-shrink-0">
@@ -161,7 +161,7 @@ const ConversationItem: React.FC<ConversationItemProps> = ({ conversation }) => 
             </div>
           </button>
 
-          <div className="relative" ref={menuRef}>
+          <div className="relative ml-2 flex-shrink-0" ref={menuRef}>
             <TooltipProvider>
               <Tooltip>
                 <TooltipTrigger asChild>
@@ -196,7 +196,7 @@ const ConversationItem: React.FC<ConversationItemProps> = ({ conversation }) => 
               </div>
             )}
           </div>
-        </>
+        </div>
       )}
     </div>
   );

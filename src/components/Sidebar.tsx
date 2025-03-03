@@ -1,3 +1,4 @@
+
 import React from "react";
 import { useChat } from "@/context/ChatContext";
 import { PlusCircle, X } from "lucide-react";
@@ -35,7 +36,7 @@ const Sidebar: React.FC = () => {
       </div>
 
       {/* Conversation list */}
-      <div className="flex-1 overflow-y-auto py-2 px-2">
+      <div className="flex-1 overflow-y-auto overflow-x-hidden py-2 px-2">
         <div className="space-y-1">
           {conversations.map(conversation => (
             <ConversationItem
