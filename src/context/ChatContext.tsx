@@ -1,4 +1,3 @@
-
 import React, { createContext, useContext, useState } from "react";
 
 type MessageType = {
@@ -36,7 +35,7 @@ interface ChatContextType {
 const initialConversations: ConversationType[] = [
   {
     id: "1",
-    title: "New Conversation",
+    title: "New conversation",
     lastMessageTime: new Date(),
     messages: [],
     context: [],
@@ -112,7 +111,7 @@ export const ChatProvider: React.FC<{ children: React.ReactNode }> = ({
     if (isMobileSidebarOpen) {
       setIsMobileSidebarOpen(false);
     }
-    
+
     return newId; // Return the new conversation ID
   };
 
