@@ -3,7 +3,7 @@ import { useChat } from "@/context/ChatContext";
 import { Menu } from "lucide-react";
 import MessageList from "./MessageList";
 import ChatInput from "./ChatInput";
-
+import { formatText } from "@/utils/formatText";
 const ChatArea: React.FC = () => {
   const askAI = async (prompt: string) => {
     try {
@@ -43,8 +43,11 @@ const ChatArea: React.FC = () => {
               const parsedChunk = JSON.parse(line); // Parse each line as JSON
               result += parsedChunk.response;
 
-              // Update the message with the new chunk and indicate streaming is ongoing
-              updateStreamingMessage(result, true); // Pass `true` to indicate streaming is ongoing
+              // Format bold text in the result
+              const formattedResult = formatText(result);
+
+              // Update the message with the formatted result
+              updateStreamingMessage(formattedResult, true); // Pass `true` to indicate streaming is ongoing
 
               // Store the context from the server's response
               if (parsedChunk.context) {
@@ -57,8 +60,11 @@ const ChatArea: React.FC = () => {
         }
       }
 
-      // Return the final result and context
-      return { response: result, context: finalContext };
+      // Format the final result
+      const formattedResponse = formatText(result);
+
+      // Return the final formatted result and context
+      return { response: formattedResponse, context: finalContext };
     } catch (error) {
       console.error("Error:", error);
       return { response: "Error: Could not get a response.", context: [] };
@@ -69,6 +75,9 @@ const ChatArea: React.FC = () => {
     isStreaming: boolean = true
   ) => {
     if (!activeConversationId) return;
+
+    // Format bold text in the content
+    const formattedContent = formatText(content);
 
     setConversations(prevConversations => {
       return prevConversations.map(conv => {
@@ -82,7 +91,9 @@ const ChatArea: React.FC = () => {
                 index === conv.messages.length - 1
                   ? {
                       ...msg,
-                      content: isStreaming ? `${content} ⬤` : content, // Add ⬤ while streaming
+                      content: isStreaming
+                        ? `${formattedContent} ⬤`
+                        : formattedContent, // Add ⬤ while streaming
                     }
                   : msg
               ),
@@ -113,7 +124,7 @@ const ChatArea: React.FC = () => {
     // If no active conversation, create a new one first
     if (!activeConversationId) {
       const newConversationId = createNewConversation();
-      
+
       // Add user message to the new conversation
       addMessage({
         role: "user",
@@ -144,7 +155,7 @@ const ChatArea: React.FC = () => {
           })
         );
       });
-      
+
       return;
     }
 
