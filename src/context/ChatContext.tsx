@@ -35,79 +35,9 @@ interface ChatContextType {
 const initialConversations: ConversationType[] = [
   {
     id: "1",
-    title: "How to design a website",
+    title: "New Conversation",
     lastMessageTime: new Date(),
-    messages: [
-      {
-        id: "1",
-        role: "user",
-        content: "I need help designing a website for my new business.",
-        timestamp: new Date(Date.now() - 3600000),
-      },
-      {
-        id: "2",
-        role: "assistant",
-        content:
-          "I'd be happy to help you design a website for your business. Could you tell me more about what kind of business you have and what you'd like to achieve with your website?",
-        timestamp: new Date(Date.now() - 3500000),
-      },
-    ],
-    context: [],
-  },
-  {
-    id: "2",
-    title: "AI model capabilities",
-    lastMessageTime: new Date(Date.now() - 86400000),
-    messages: [
-      {
-        id: "1",
-        role: "user",
-        content: "What are the capabilities of the latest AI models?",
-        timestamp: new Date(Date.now() - 86400000),
-      },
-    ],
-    context: [],
-  },
-  {
-    id: "3",
-    title: "Programming help",
-    lastMessageTime: new Date(Date.now() - 172800000),
-    messages: [
-      {
-        id: "1",
-        role: "user",
-        content: "Can you help me debug this React code?",
-        timestamp: new Date(Date.now() - 172800000),
-      },
-    ],
-    context: [],
-  },
-  {
-    id: "4",
-    title: "Learning Spanish",
-    lastMessageTime: new Date(Date.now() - 259200000),
-    messages: [
-      {
-        id: "1",
-        role: "user",
-        content: "I want to learn Spanish. Where should I start?",
-        timestamp: new Date(Date.now() - 259200000),
-      },
-    ],
-    context: [],
-  },
-  {
-    id: "5",
-    title: "Travel recommendations",
-    lastMessageTime: new Date(Date.now() - 345600000),
-    messages: [
-      {
-        id: "1",
-        role: "user",
-        content: "Can you recommend places to visit in Japan?",
-        timestamp: new Date(Date.now() - 345600000),
-      },
-    ],
+    messages: [],
     context: [],
   },
 ];
@@ -189,11 +119,11 @@ export const ChatProvider: React.FC<{ children: React.ReactNode }> = ({
   const deleteConversation = (id: string) => {
     // Check if we're deleting the active conversation
     const isActiveConversation = activeConversationId === id;
-    
+
     // Filter out the conversation to delete
     setConversations(prev => {
       const filtered = prev.filter(conv => conv.id !== id);
-      
+
       // If we deleted the active conversation, set a new active conversation
       if (isActiveConversation && filtered.length > 0) {
         setActiveConversationId(filtered[0].id);
@@ -201,16 +131,14 @@ export const ChatProvider: React.FC<{ children: React.ReactNode }> = ({
         // If no conversations left, create a new one
         createNewConversation();
       }
-      
+
       return filtered;
     });
   };
 
   const renameConversation = (id: string, newTitle: string) => {
     setConversations(prev =>
-      prev.map(conv =>
-        conv.id === id ? { ...conv, title: newTitle } : conv
-      )
+      prev.map(conv => (conv.id === id ? { ...conv, title: newTitle } : conv))
     );
   };
 
