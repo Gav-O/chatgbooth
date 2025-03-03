@@ -1,3 +1,4 @@
+
 import React, { createContext, useContext, useState } from "react";
 
 type MessageType = {
@@ -23,13 +24,13 @@ interface ChatContextType {
     message: Omit<MessageType, "id" | "timestamp">,
     context?: any[]
   ) => void;
-  createNewConversation: () => void;
+  createNewConversation: () => string; // Modified to return the new conversation ID
   deleteConversation: (id: string) => void;
   renameConversation: (id: string, newTitle: string) => void;
   isMobileSidebarOpen: boolean;
   toggleMobileSidebar: () => void;
   isWaitingForResponse: boolean;
-  setConversations: React.Dispatch<React.SetStateAction<ConversationType[]>>; // Add this line
+  setConversations: React.Dispatch<React.SetStateAction<ConversationType[]>>;
 }
 
 const initialConversations: ConversationType[] = [
@@ -111,6 +112,8 @@ export const ChatProvider: React.FC<{ children: React.ReactNode }> = ({
     if (isMobileSidebarOpen) {
       setIsMobileSidebarOpen(false);
     }
+    
+    return newId; // Return the new conversation ID
   };
 
   const deleteConversation = (id: string) => {
@@ -126,7 +129,7 @@ export const ChatProvider: React.FC<{ children: React.ReactNode }> = ({
         setActiveConversationId(filtered[0].id);
       } else if (filtered.length === 0) {
         // If no conversations left, create a new one
-        createNewConversation();
+        setActiveConversationId(null);
       }
 
       return filtered;
@@ -152,7 +155,7 @@ export const ChatProvider: React.FC<{ children: React.ReactNode }> = ({
         isMobileSidebarOpen,
         toggleMobileSidebar,
         isWaitingForResponse,
-        setConversations, // Add this line
+        setConversations,
       }}>
       {children}
     </ChatContext.Provider>

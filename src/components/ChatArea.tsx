@@ -3,7 +3,6 @@ import { useChat } from "@/context/ChatContext";
 import { Menu } from "lucide-react";
 import MessageList from "./MessageList";
 import ChatInput from "./ChatInput";
-import axios from "axios";
 
 const ChatArea: React.FC = () => {
   const askAI = async (prompt: string) => {
@@ -111,9 +110,42 @@ const ChatArea: React.FC = () => {
   const handleSendMessage = (content: string) => {
     if (!content.trim()) return;
 
-    // If no conversation is active, create a new one
+    // If no active conversation, create a new one first
     if (!activeConversationId) {
-      createNewConversation();
+      const newConversationId = createNewConversation();
+      
+      // Add user message to the new conversation
+      addMessage({
+        role: "user",
+        content,
+      });
+
+      // Add a placeholder assistant message with ⬤
+      addMessage({
+        role: "assistant",
+        content: "⬤", // Start with ⬤ to indicate streaming
+      });
+
+      // Start streaming the AI response
+      askAI(content).then(({ response, context }) => {
+        // Update the assistant's message with the final response (without ⬤)
+        updateStreamingMessage(response, false);
+
+        // Update the conversation's context with the new context
+        setConversations(prevConversations =>
+          prevConversations.map(conv => {
+            if (conv.id === newConversationId) {
+              return {
+                ...conv,
+                context: context || conv.context,
+              };
+            }
+            return conv;
+          })
+        );
+      });
+      
+      return;
     }
 
     // Add user message
