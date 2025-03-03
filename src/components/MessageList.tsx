@@ -1,10 +1,9 @@
-
 import React, { useEffect, useRef } from "react";
 import MessageItem from "./MessageItem";
 
 type MessageType = {
   id: string;
-  role: 'user' | 'assistant';
+  role: "user" | "assistant";
   content: string;
   timestamp: Date;
 };
@@ -15,10 +14,10 @@ interface MessageListProps {
 
 const MessageList: React.FC<MessageListProps> = ({ messages }) => {
   const messagesEndRef = useRef<HTMLDivElement>(null);
-  
+
   // Scroll to bottom when messages change
   useEffect(() => {
-    messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
+    messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
   }, [messages]);
 
   return (
@@ -30,7 +29,7 @@ const MessageList: React.FC<MessageListProps> = ({ messages }) => {
           </div>
         ) : (
           <div className="space-y-6">
-            {messages.map((message) => (
+            {messages.map(message => (
               <MessageItem key={message.id} message={message} />
             ))}
             <div ref={messagesEndRef} />
