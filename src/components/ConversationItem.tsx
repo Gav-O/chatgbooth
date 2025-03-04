@@ -21,17 +21,25 @@ interface ConversationItemProps {
   conversation: ConversationType;
 }
 
-const ConversationItem: React.FC<ConversationItemProps> = ({ conversation }) => {
-  const { activeConversationId, setActiveConversationId, toggleMobileSidebar, deleteConversation, renameConversation } = useChat();
+const ConversationItem: React.FC<ConversationItemProps> = ({
+  conversation,
+}) => {
+  const {
+    activeConversationId,
+    setActiveConversationId,
+    toggleMobileSidebar,
+    deleteConversation,
+    renameConversation,
+  } = useChat();
   const [showMenu, setShowMenu] = useState(false);
   const [isRenaming, setIsRenaming] = useState(false);
   const [newTitle, setNewTitle] = useState(conversation.title);
   const menuRef = useRef<HTMLDivElement>(null);
   const inputRef = useRef<HTMLInputElement>(null);
   const { toast } = useToast();
-  
+
   const isActive = activeConversationId === conversation.id;
-  
+
   const handleClick = () => {
     if (!isRenaming) {
       setActiveConversationId(conversation.id);
@@ -99,19 +107,24 @@ const ConversationItem: React.FC<ConversationItemProps> = ({ conversation }) => 
       document.removeEventListener("mousedown", handleClickOutside);
     };
   }, [showMenu]);
-  
+
   const formatDate = (date: Date) => {
     const now = new Date();
-    const diffInDays = Math.floor((now.getTime() - date.getTime()) / (1000 * 60 * 60 * 24));
-    
+    const diffInDays = Math.floor(
+      (now.getTime() - date.getTime()) / (1000 * 60 * 60 * 24)
+    );
+
     if (diffInDays === 0) {
       return "Today";
     } else if (diffInDays === 1) {
       return "Yesterday";
     } else if (diffInDays < 7) {
-      return date.toLocaleDateString(undefined, { weekday: 'long' });
+      return date.toLocaleDateString(undefined, { weekday: "long" });
     } else {
-      return date.toLocaleDateString(undefined, { month: 'short', day: 'numeric' });
+      return date.toLocaleDateString(undefined, {
+        month: "short",
+        day: "numeric",
+      });
     }
   };
 
@@ -119,27 +132,32 @@ const ConversationItem: React.FC<ConversationItemProps> = ({ conversation }) => 
     <div
       className={cn(
         "w-full flex items-start gap-3 px-3 py-2.5 rounded-md text-left transition-colors relative",
-        isActive 
-          ? "bg-sidebar-accent text-sidebar-accent-foreground" 
+        isActive
+          ? "bg-sidebar-accent text-sidebar-accent-foreground"
           : "hover:bg-sidebar-accent/50 text-sidebar-foreground/90"
-      )}
-    >
+      )}>
       {isRenaming ? (
-        <form onSubmit={handleRenameSubmit} className="w-full flex items-center">
+        <form
+          onSubmit={handleRenameSubmit}
+          className="w-full flex items-center">
           <input
             ref={inputRef}
             type="text"
             value={newTitle}
-            onChange={(e) => setNewTitle(e.target.value)}
+            onChange={e => setNewTitle(e.target.value)}
             className="w-full px-2 py-1 bg-sidebar-accent/30 border border-sidebar-border rounded-md text-sm"
             onBlur={handleRenameCancel}
-            onKeyDown={(e) => e.key === "Escape" && handleRenameCancel()}
+            onKeyDown={e => e.key === "Escape" && handleRenameCancel()}
           />
-          <button type="submit" className="sr-only">Save</button>
+          <button type="submit" className="sr-only">
+            Save
+          </button>
         </form>
       ) : (
         <div className="flex items-start w-full justify-between">
-          <button onClick={handleClick} className="flex items-start gap-3 flex-1 text-left overflow-hidden">
+          <button
+            onClick={handleClick}
+            className="flex items-start gap-3 flex-1 text-left overflow-hidden">
             <MessageSquare size={18} className="mt-0.5 flex-shrink-0" />
             <div className="flex-1 min-w-0 overflow-hidden">
               <div className="flex justify-between items-baseline w-full">
@@ -149,9 +167,15 @@ const ConversationItem: React.FC<ConversationItemProps> = ({ conversation }) => 
                 </span>
               </div>
               <p className="text-xs opacity-70 truncate mt-0.5">
-                {conversation.messages.length > 0 
-                  ? conversation.messages[conversation.messages.length - 1].content.substring(0, 40) + (conversation.messages[conversation.messages.length - 1].content.length > 40 ? '...' : '')
-                  : 'No messages yet'}
+                {conversation.messages.length > 0
+                  ? conversation.messages[
+                      conversation.messages.length - 1
+                    ].content.substring(0, 40) +
+                    (conversation.messages[conversation.messages.length - 1]
+                      .content.length > 40
+                      ? "..."
+                      : "")
+                  : "No messages yet"}
               </p>
             </div>
           </button>
@@ -163,9 +187,8 @@ const ConversationItem: React.FC<ConversationItemProps> = ({ conversation }) => 
                   <button
                     onClick={handleMenuToggle}
                     className="p-1 rounded-md hover:bg-sidebar-accent/70 text-sidebar-foreground/70"
-                    aria-label="Conversation options"
-                  >
-                    <MoreVertical size={16} />
+                    aria-label="Conversation options">
+                    <MoreVertical size={21} className="mt-2" />
                   </button>
                 </TooltipTrigger>
                 <TooltipContent side="right">
@@ -178,14 +201,12 @@ const ConversationItem: React.FC<ConversationItemProps> = ({ conversation }) => 
               <div className="absolute right-0 mt-1 w-36 bg-popover border border-border rounded-md shadow-md z-10">
                 <button
                   onClick={handleRenameClick}
-                  className="flex items-center gap-2 w-full px-3 py-2 text-sm text-left hover:bg-sidebar-accent/30 transition-colors text-black"
-                >
+                  className="flex items-center gap-2 w-full px-3 py-2 text-sm text-left hover:bg-sidebar-accent/30 transition-colors text-black">
                   <Pencil size={14} className="text-black" /> Rename
                 </button>
                 <button
                   onClick={handleDelete}
-                  className="flex items-center gap-2 w-full px-3 py-2 text-sm text-left text-destructive hover:bg-sidebar-accent/30 transition-colors"
-                >
+                  className="flex items-center gap-2 w-full px-3 py-2 text-sm text-left text-destructive hover:bg-sidebar-accent/30 transition-colors">
                   <Trash size={14} /> Delete
                 </button>
               </div>
