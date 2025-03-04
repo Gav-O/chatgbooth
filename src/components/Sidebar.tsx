@@ -1,3 +1,4 @@
+
 import React from "react";
 import { useChat } from "@/context/ChatContext";
 import { PlusCircle, X } from "lucide-react";
@@ -12,7 +13,7 @@ const Sidebar: React.FC = () => {
       {/* Header */}
       <div className="flex items-center justify-between px-4 h-16 border-b border-sidebar-border">
         <div className="flex items-center space-x-2">
-          <span className="text-2xl">⌘</span>
+          <span className="text-2xl font-light">⌘</span>
           <h1 className="text-xl font-semibold tracking-tight">ChatGBHO</h1>
         </div>
 
@@ -28,7 +29,7 @@ const Sidebar: React.FC = () => {
       <div className="p-4">
         <button
           onClick={createNewConversation}
-          className="flex items-center justify-center w-full gap-2 px-4 py-2.5 rounded-md bg-sidebar-primary text-sidebar-primary-foreground hover:bg-sidebar-primary/90 transition-colors">
+          className="flex items-center justify-center w-full gap-2 px-4 py-2.5 rounded-md bg-sidebar-primary text-sidebar-primary-foreground hover:opacity-90 transition-opacity">
           <PlusCircle size={18} />
           <span>New Chat</span>
         </button>
