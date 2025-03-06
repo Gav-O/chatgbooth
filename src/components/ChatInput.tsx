@@ -1,6 +1,8 @@
+
 import React, { useState, useRef, useEffect } from "react";
 import { Send } from "lucide-react";
 import { useChat } from "@/context/ChatContext";
+import { cn } from "@/lib/utils";
 
 interface ChatInputProps {
   onSendMessage: (content: string) => void;
@@ -51,9 +53,14 @@ const ChatInput: React.FC<ChatInputProps> = ({ onSendMessage }) => {
               ? "Waiting for response..."
               : "Type a message..."
           }
-          className={`w-full resize-none py-3 px-4 pr-12 rounded-xl border bg-background focus:outline-none focus:ring-2 focus:ring-primary/50 text-input-shadow transition-shadow ${
+          className={cn(
+            "w-full resize-none py-3 px-4 pr-12 rounded-xl border",
+            "bg-background dark:bg-slate-900",
+            "focus:outline-none focus:ring-2 focus:ring-primary/50",
+            "text-foreground dark:text-slate-200",
+            "text-input-shadow transition-shadow",
             isWaitingForResponse ? "opacity-70" : ""
-          }`}
+          )}
           rows={1}
           style={{ minHeight: "56px", maxHeight: "200px" }}
           disabled={isWaitingForResponse}
@@ -62,7 +69,12 @@ const ChatInput: React.FC<ChatInputProps> = ({ onSendMessage }) => {
         <button
           type="submit"
           disabled={!message.trim() || isWaitingForResponse}
-          className="absolute right-3 p-2 rounded-md bg-primary text-primary-foreground opacity-90 hover:opacity-100 transition-opacity disabled:opacity-50 disabled:cursor-not-allowed"
+          className={cn(
+            "absolute right-3 p-2 rounded-md",
+            "bg-primary text-primary-foreground",
+            "opacity-90 hover:opacity-100 transition-opacity",
+            "disabled:opacity-50 disabled:cursor-not-allowed"
+          )}
           aria-label="Send message">
           <Send size={18} />
         </button>
