@@ -2,6 +2,7 @@
 import React from "react";
 import { User } from "lucide-react";
 import { cn } from "@/lib/utils";
+import { formatText } from "@/utils/formatText";
 
 type MessageType = {
   id: string;
@@ -21,6 +22,9 @@ const MessageItem: React.FC<MessageItemProps> = ({ message }) => {
   const formatTime = (date: Date) => {
     return date.toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" });
   };
+
+  // Format message content using the formatText utility
+  const formattedContent = formatText(message.content);
 
   return (
     <div className={cn("group animate-fade-in", isUser ? "" : "")}>
@@ -52,9 +56,9 @@ const MessageItem: React.FC<MessageItemProps> = ({ message }) => {
               "p-4 rounded-xl text-base leading-relaxed",
               isUser
                 ? "bg-chat-user text-foreground border border-primary/5"
-                : "bg-chat-assistant text-white border border-white/5 futuristic-border"
+                : "bg-white text-black border border-black/5 futuristic-border"
             )}
-            dangerouslySetInnerHTML={{ __html: message.content }} // Render HTML content
+            dangerouslySetInnerHTML={{ __html: formattedContent }}
           />
         </div>
       </div>
