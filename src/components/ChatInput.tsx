@@ -1,8 +1,6 @@
-
 import React, { useState, useRef, useEffect } from "react";
 import { Send } from "lucide-react";
 import { useChat } from "@/context/ChatContext";
-import { useTheme } from "@/providers/ThemeProvider";
 
 interface ChatInputProps {
   onSendMessage: (content: string) => void;
@@ -12,7 +10,6 @@ const ChatInput: React.FC<ChatInputProps> = ({ onSendMessage }) => {
   const [message, setMessage] = useState("");
   const textareaRef = useRef<HTMLTextAreaElement>(null);
   const { isWaitingForResponse } = useChat();
-  const { theme } = useTheme();
 
   // Auto-resize textarea based on content
   useEffect(() => {
@@ -41,10 +38,6 @@ const ChatInput: React.FC<ChatInputProps> = ({ onSendMessage }) => {
     }
   };
 
-  const borderClass = theme === "light" 
-    ? "border-gray-300" 
-    : "border-gray-700";
-
   return (
     <form onSubmit={handleSubmit} className="relative max-w-3xl mx-auto w-full">
       <div className="relative flex items-center">
@@ -58,7 +51,7 @@ const ChatInput: React.FC<ChatInputProps> = ({ onSendMessage }) => {
               ? "Waiting for response..."
               : "Type a message..."
           }
-          className={`w-full resize-none py-3 px-4 pr-12 rounded-xl border ${borderClass} bg-background focus:outline-none focus:ring-2 focus:ring-primary/50 text-input-shadow transition-shadow ${
+          className={`w-full resize-none py-3 px-4 pr-12 rounded-xl border bg-background focus:outline-none focus:ring-2 focus:ring-primary/50 text-input-shadow transition-shadow ${
             isWaitingForResponse ? "opacity-70" : ""
           }`}
           rows={1}

@@ -2,7 +2,6 @@
 import React from "react";
 import { User } from "lucide-react";
 import { cn } from "@/lib/utils";
-import { useTheme } from "@/providers/ThemeProvider";
 
 type MessageType = {
   id: string;
@@ -17,8 +16,6 @@ interface MessageItemProps {
 
 const MessageItem: React.FC<MessageItemProps> = ({ message }) => {
   const isUser = message.role === "user";
-  const { theme } = useTheme();
-  const isDark = theme === "dark";
 
   // Format timestamp
   const formatTime = (date: Date) => {
@@ -34,9 +31,7 @@ const MessageItem: React.FC<MessageItemProps> = ({ message }) => {
             "flex-shrink-0 rounded-full w-8 h-8 flex items-center justify-center",
             isUser
               ? "bg-primary text-primary-foreground"
-              : isDark 
-                ? "bg-black text-white border border-primary/10" 
-                : "bg-white text-black border border-primary/10"
+              : "bg-white text-black dark:bg-black dark:text-white border border-primary/10"
           )}>
           {isUser ? <User size={16} /> : <span className="text-xl">⌘</span>}
         </div>
@@ -57,9 +52,7 @@ const MessageItem: React.FC<MessageItemProps> = ({ message }) => {
               "p-4 rounded-xl text-base leading-relaxed",
               isUser
                 ? "bg-chat-user text-foreground border border-primary/5"
-                : isDark
-                  ? "bg-chat-assistant text-white border border-white/5 futuristic-border"
-                  : "bg-chat-assistant text-black border border-black/5 futuristic-border"
+                : "bg-chat-assistant text-white border border-white/5 futuristic-border"
             )}
             dangerouslySetInnerHTML={{ __html: message.content }} // Render HTML content
           />
