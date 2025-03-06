@@ -1,3 +1,4 @@
+
 import React, { useState, useRef, useEffect } from "react";
 import { Send } from "lucide-react";
 import { useChat } from "@/context/ChatContext";
@@ -48,15 +49,15 @@ const ChatInput: React.FC<ChatInputProps> = ({ onSendMessage }) => {
           onKeyDown={handleKeyDown}
           placeholder={
             isWaitingForResponse
-              ? "Waiting for response..."
+              ? "You can type your next message while waiting..."
               : "Type a message..."
           }
           className={`w-full resize-none py-3 px-4 pr-12 rounded-xl border bg-background focus:outline-none focus:ring-2 focus:ring-primary/50 text-input-shadow transition-shadow ${
-            isWaitingForResponse ? "opacity-70" : ""
+            isWaitingForResponse ? "opacity-90" : ""
           }`}
           rows={1}
           style={{ minHeight: "56px", maxHeight: "200px" }}
-          disabled={isWaitingForResponse}
+          // Remove the disabled attribute to allow typing while waiting
         />
 
         <button
@@ -70,7 +71,7 @@ const ChatInput: React.FC<ChatInputProps> = ({ onSendMessage }) => {
 
       <p className="text-xs text-muted-foreground mt-2 text-center">
         {isWaitingForResponse
-          ? "Please wait for a response..."
+          ? "Please wait for a response before sending..."
           : "Press Enter to send, Shift+Enter for a new line"}
       </p>
     </form>
