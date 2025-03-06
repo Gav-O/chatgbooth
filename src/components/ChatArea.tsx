@@ -4,9 +4,23 @@ import { Menu } from "lucide-react";
 import MessageList from "./MessageList";
 import ChatInput from "./ChatInput";
 import { formatText } from "@/utils/formatText";
+
 const ChatArea: React.FC = () => {
+  const {
+    conversations,
+    activeConversationId,
+    addMessage,
+    toggleMobileSidebar,
+    createNewConversation,
+    setConversations,
+    isWaitingForResponse,
+    setIsWaitingForResponse,
+  } = useChat();
+
   const askAI = async (prompt: string) => {
     try {
+      setIsWaitingForResponse(true); // Set waiting state to true when starting the request
+
       const activeConversation = activeConversationId
         ? conversations.find(c => c.id === activeConversationId)
         : null;
@@ -20,13 +34,13 @@ const ChatArea: React.FC = () => {
           model: "llama3.2",
           prompt: prompt,
           stream: true,
-          context: activeConversation?.context || [], // Use the conversation's context
+          context: activeConversation?.context || [],
         }),
       });
 
       const reader = response.body?.getReader();
       let result = "";
-      let finalContext: any[] = []; // Store the final context from the server
+      let finalContext: any[] = [];
 
       if (reader) {
         while (true) {
@@ -34,22 +48,18 @@ const ChatArea: React.FC = () => {
           if (done) break;
 
           const chunk = new TextDecoder().decode(value);
-          const lines = chunk.split("\n"); // Split the chunk by newlines
+          const lines = chunk.split("\n");
 
           for (const line of lines) {
-            if (line.trim() === "") continue; // Skip empty lines
+            if (line.trim() === "") continue;
 
             try {
-              const parsedChunk = JSON.parse(line); // Parse each line as JSON
+              const parsedChunk = JSON.parse(line);
               result += parsedChunk.response;
 
-              // Format bold text in the result
               const formattedResult = formatText(result);
+              updateStreamingMessage(formattedResult, true);
 
-              // Update the message with the formatted result
-              updateStreamingMessage(formattedResult, true); // Pass `true` to indicate streaming is ongoing
-
-              // Store the context from the server's response
               if (parsedChunk.context) {
                 finalContext = parsedChunk.context;
               }
@@ -60,23 +70,22 @@ const ChatArea: React.FC = () => {
         }
       }
 
-      // Format the final result
       const formattedResponse = formatText(result);
-
-      // Return the final formatted result and context
       return { response: formattedResponse, context: finalContext };
     } catch (error) {
       console.error("Error:", error);
       return { response: "Error: Could not get a response.", context: [] };
+    } finally {
+      setIsWaitingForResponse(false); // Set waiting state to false when the request is complete
     }
   };
+
   const updateStreamingMessage = (
     content: string,
     isStreaming: boolean = true
   ) => {
     if (!activeConversationId) return;
 
-    // Format bold text in the content
     const formattedContent = formatText(content);
 
     setConversations(prevConversations => {
@@ -84,7 +93,6 @@ const ChatArea: React.FC = () => {
         if (conv.id === activeConversationId) {
           const lastMessage = conv.messages[conv.messages.length - 1];
           if (lastMessage && lastMessage.role === "assistant") {
-            // Update the last assistant message
             return {
               ...conv,
               messages: conv.messages.map((msg, index) =>
@@ -93,7 +101,7 @@ const ChatArea: React.FC = () => {
                       ...msg,
                       content: isStreaming
                         ? `${formattedContent} ⬤`
-                        : formattedContent, // Add ⬤ while streaming
+                        : formattedContent,
                     }
                   : msg
               ),
@@ -105,15 +113,6 @@ const ChatArea: React.FC = () => {
     });
   };
 
-  const {
-    conversations,
-    activeConversationId,
-    addMessage,
-    toggleMobileSidebar,
-    createNewConversation,
-    setConversations,
-  } = useChat();
-
   const activeConversation = activeConversationId
     ? conversations.find(c => c.id === activeConversationId)
     : null;
@@ -121,28 +120,22 @@ const ChatArea: React.FC = () => {
   const handleSendMessage = (content: string) => {
     if (!content.trim()) return;
 
-    // If no active conversation, create a new one first
     if (!activeConversationId) {
       const newConversationId = createNewConversation();
 
-      // Add user message to the new conversation
       addMessage({
         role: "user",
         content,
       });
 
-      // Add a placeholder assistant message with ⬤
       addMessage({
         role: "assistant",
-        content: "⬤", // Start with ⬤ to indicate streaming
+        content: "⬤",
       });
 
-      // Start streaming the AI response
       askAI(content).then(({ response, context }) => {
-        // Update the assistant's message with the final response (without ⬤)
         updateStreamingMessage(response, false);
 
-        // Update the conversation's context with the new context
         setConversations(prevConversations =>
           prevConversations.map(conv => {
             if (conv.id === newConversationId) {
@@ -159,31 +152,26 @@ const ChatArea: React.FC = () => {
       return;
     }
 
-    // Add user message
     addMessage({
       role: "user",
       content,
     });
 
-    // Add a placeholder assistant message with ⬤
     addMessage({
       role: "assistant",
-      content: "⬤", // Start with ⬤ to indicate streaming
+      content: "⬤",
     });
 
-    // Start streaming the AI response
     askAI(content).then(({ response, context }) => {
-      // Update the assistant's message with the final response (without ⬤)
-      updateStreamingMessage(response, false); // Pass `false` to indicate streaming is complete
+      updateStreamingMessage(response, false);
 
-      // Update the conversation's context with the new context
       if (activeConversationId) {
         setConversations(prevConversations =>
           prevConversations.map(conv => {
             if (conv.id === activeConversationId) {
               return {
                 ...conv,
-                context: context || conv.context, // Use the new context or fall back to the existing context
+                context: context || conv.context,
               };
             }
             return conv;
@@ -195,7 +183,6 @@ const ChatArea: React.FC = () => {
 
   return (
     <div className="flex flex-col h-full relative">
-      {/* Header */}
       <header className="flex items-center h-16 px-4 border-b border-border/50 bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60">
         <button
           onClick={toggleMobileSidebar}
@@ -211,7 +198,6 @@ const ChatArea: React.FC = () => {
         </div>
       </header>
 
-      {/* Message area */}
       <div className="flex-1 overflow-hidden">
         {activeConversation ? (
           <MessageList messages={activeConversation.messages} />
@@ -227,7 +213,6 @@ const ChatArea: React.FC = () => {
         )}
       </div>
 
-      {/* Input area */}
       <div className="p-4 border-t border-border/50 bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60">
         <ChatInput onSendMessage={handleSendMessage} />
       </div>

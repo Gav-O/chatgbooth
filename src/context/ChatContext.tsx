@@ -29,6 +29,7 @@ interface ChatContextType {
   isMobileSidebarOpen: boolean;
   toggleMobileSidebar: () => void;
   isWaitingForResponse: boolean;
+  setIsWaitingForResponse: React.Dispatch<React.SetStateAction<boolean>>; // Add this line
   setConversations: React.Dispatch<React.SetStateAction<ConversationType[]>>;
 }
 
@@ -154,6 +155,7 @@ export const ChatProvider: React.FC<{ children: React.ReactNode }> = ({
         isMobileSidebarOpen,
         toggleMobileSidebar,
         isWaitingForResponse,
+        setIsWaitingForResponse, // Add this line
         setConversations,
       }}>
       {children}
