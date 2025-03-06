@@ -3,7 +3,6 @@ import React from "react";
 import { useChat } from "@/context/ChatContext";
 import { PlusCircle, X } from "lucide-react";
 import ConversationItem from "./ConversationItem";
-import ThemeToggle from "./ThemeToggle";
 
 const Sidebar: React.FC = () => {
   const { conversations, createNewConversation, toggleMobileSidebar } =
@@ -18,15 +17,12 @@ const Sidebar: React.FC = () => {
           <h1 className="text-xl font-semibold tracking-tight">ChatGBHO</h1>
         </div>
 
-        <div className="flex items-center">
-          <ThemeToggle />
-          <button
-            onClick={toggleMobileSidebar}
-            className="p-1 rounded-md hover:bg-sidebar-accent lg:hidden ml-2"
-            aria-label="Close sidebar">
-            <X size={20} />
-          </button>
-        </div>
+        <button
+          onClick={toggleMobileSidebar}
+          className="p-1 rounded-md hover:bg-sidebar-accent lg:hidden"
+          aria-label="Close sidebar">
+          <X size={20} />
+        </button>
       </div>
 
       {/* New chat button */}
