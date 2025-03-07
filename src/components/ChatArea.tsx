@@ -1,4 +1,3 @@
-
 import React, { useRef } from "react";
 import { useChat } from "@/context/ChatContext";
 import { Menu } from "lucide-react";
@@ -7,6 +6,7 @@ import ChatInput from "./ChatInput";
 import { formatText } from "@/utils/formatText";
 
 const ChatArea: React.FC = () => {
+  const finalContextRef = useRef<any[]>([]);
   const {
     conversations,
     activeConversationId,
@@ -17,17 +17,39 @@ const ChatArea: React.FC = () => {
     isWaitingForResponse,
     setIsWaitingForResponse,
   } = useChat();
-  
+
   // Add a ref to store the current reader
-  const readerRef = useRef<ReadableStreamDefaultReader<Uint8Array> | null>(null);
+  const readerRef = useRef<ReadableStreamDefaultReader<Uint8Array> | null>(
+    null
+  );
 
   const stopGeneration = async () => {
     // Cancel the reader if it exists
     if (readerRef.current) {
       try {
+        // Save the current context before canceling
+        const activeConversation = activeConversationId
+          ? conversations.find(c => c.id === activeConversationId)
+          : null;
+
+        if (activeConversation) {
+          setConversations(prevConversations => {
+            return prevConversations.map(conv => {
+              if (conv.id === activeConversationId) {
+                return {
+                  ...conv,
+                  context: finalContextRef.current || conv.context, // Use the ref
+                };
+              }
+              return conv;
+            });
+          });
+        }
+
+        // Cancel the reader
         await readerRef.current.cancel();
         readerRef.current = null;
-        
+
         // Update the last message to indicate it was stopped
         if (activeConversationId) {
           setConversations(prevConversations => {
@@ -35,14 +57,17 @@ const ChatArea: React.FC = () => {
               if (conv.id === activeConversationId) {
                 const messages = [...conv.messages];
                 const lastMessage = messages[messages.length - 1];
-                
+
                 if (lastMessage && lastMessage.role === "assistant") {
                   messages[messages.length - 1] = {
                     ...lastMessage,
-                    content: `${lastMessage.content.replace(" ⬤", "")} (stopped)`,
+                    content: `${lastMessage.content.replace(
+                      " ⬤",
+                      ""
+                    )} (stopped)`,
                   };
                 }
-                
+
                 return {
                   ...conv,
                   messages,
@@ -52,7 +77,7 @@ const ChatArea: React.FC = () => {
             });
           });
         }
-        
+
         // Reset the waiting state
         setIsWaitingForResponse(false);
       } catch (error) {
@@ -68,6 +93,9 @@ const ChatArea: React.FC = () => {
       const activeConversation = activeConversationId
         ? conversations.find(c => c.id === activeConversationId)
         : null;
+
+      // Initialize the ref with the current context
+      finalContextRef.current = activeConversation?.context || [];
 
       const response = await fetch("http://localhost:11434/api/generate", {
         method: "POST",
@@ -85,9 +113,8 @@ const ChatArea: React.FC = () => {
       const reader = response.body?.getReader();
       // Store the reader in the ref so we can cancel it if needed
       readerRef.current = reader;
-      
+
       let result = "";
-      let finalContext: any[] = [];
 
       if (reader) {
         try {
@@ -109,7 +136,7 @@ const ChatArea: React.FC = () => {
                 updateStreamingMessage(formattedResult, true);
 
                 if (parsedChunk.context) {
-                  finalContext = parsedChunk.context;
+                  finalContextRef.current = parsedChunk.context; // Update the ref
                 }
               } catch (error) {
                 console.error("Error parsing chunk:", error);
@@ -119,20 +146,50 @@ const ChatArea: React.FC = () => {
         } catch (error) {
           // This could be a cancellation or other error
           console.error("Stream reading error:", error);
-          
+
           // If it's not a cancellation, we should still clean up
           if (readerRef.current) {
             readerRef.current = null;
           }
-          
+
+          // Save the context before returning
+          setConversations(prevConversations => {
+            return prevConversations.map(conv => {
+              if (conv.id === activeConversationId) {
+                return {
+                  ...conv,
+                  context: finalContextRef.current || conv.context,
+                };
+              }
+              return conv;
+            });
+          });
+
           // We still return what we have
-          return { response: formatText(result), context: finalContext };
+          return {
+            response: formatText(result),
+            context: finalContextRef.current,
+          };
         }
       }
 
       readerRef.current = null;
       const formattedResponse = formatText(result);
-      return { response: formattedResponse, context: finalContext };
+
+      // Save the final context
+      setConversations(prevConversations => {
+        return prevConversations.map(conv => {
+          if (conv.id === activeConversationId) {
+            return {
+              ...conv,
+              context: finalContextRef.current || conv.context,
+            };
+          }
+          return conv;
+        });
+      });
+
+      return { response: formattedResponse, context: finalContextRef.current };
     } catch (error) {
       console.error("Error:", error);
       return { response: "Error: Could not get a response.", context: [] };
@@ -275,8 +332,8 @@ const ChatArea: React.FC = () => {
       </div>
 
       <div className="p-4 border-t border-border/50 bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60">
-        <ChatInput 
-          onSendMessage={handleSendMessage} 
+        <ChatInput
+          onSendMessage={handleSendMessage}
           onStopGeneration={stopGeneration}
         />
       </div>
