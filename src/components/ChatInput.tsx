@@ -40,6 +40,13 @@ const ChatInput: React.FC<ChatInputProps> = ({ onSendMessage, onStopGeneration }
     }
   };
 
+  const handleStopGeneration = (e: React.MouseEvent) => {
+    e.preventDefault(); // Prevent form submission
+    if (onStopGeneration) {
+      onStopGeneration();
+    }
+  };
+
   return (
     <form onSubmit={handleSubmit} className="relative max-w-3xl mx-auto w-full">
       <div className="relative flex items-center">
@@ -58,13 +65,12 @@ const ChatInput: React.FC<ChatInputProps> = ({ onSendMessage, onStopGeneration }
           }`}
           rows={1}
           style={{ minHeight: "56px", maxHeight: "200px" }}
-          // Remove the disabled attribute to allow typing while waiting
         />
 
         {isWaitingForResponse ? (
           <button
-            type="button"
-            onClick={onStopGeneration}
+            type="button" // Changed from default to button type
+            onClick={handleStopGeneration} // Use the new handler
             className="absolute right-3 p-2 rounded-md bg-red-500 text-primary-foreground opacity-90 hover:opacity-100 transition-opacity"
             aria-label="Stop generation">
             <Square size={18} />
