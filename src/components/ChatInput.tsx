@@ -1,13 +1,14 @@
 
 import React, { useState, useRef, useEffect } from "react";
-import { Send } from "lucide-react";
+import { Send, Square } from "lucide-react";
 import { useChat } from "@/context/ChatContext";
 
 interface ChatInputProps {
   onSendMessage: (content: string) => void;
+  onStopGeneration?: () => void;
 }
 
-const ChatInput: React.FC<ChatInputProps> = ({ onSendMessage }) => {
+const ChatInput: React.FC<ChatInputProps> = ({ onSendMessage, onStopGeneration }) => {
   const [message, setMessage] = useState("");
   const textareaRef = useRef<HTMLTextAreaElement>(null);
   const { isWaitingForResponse } = useChat();
@@ -60,18 +61,28 @@ const ChatInput: React.FC<ChatInputProps> = ({ onSendMessage }) => {
           // Remove the disabled attribute to allow typing while waiting
         />
 
-        <button
-          type="submit"
-          disabled={!message.trim() || isWaitingForResponse}
-          className="absolute right-3 p-2 rounded-md bg-primary text-primary-foreground opacity-90 hover:opacity-100 transition-opacity disabled:opacity-50 disabled:cursor-not-allowed"
-          aria-label="Send message">
-          <Send size={18} />
-        </button>
+        {isWaitingForResponse ? (
+          <button
+            type="button"
+            onClick={onStopGeneration}
+            className="absolute right-3 p-2 rounded-md bg-red-500 text-primary-foreground opacity-90 hover:opacity-100 transition-opacity"
+            aria-label="Stop generation">
+            <Square size={18} />
+          </button>
+        ) : (
+          <button
+            type="submit"
+            disabled={!message.trim() || isWaitingForResponse}
+            className="absolute right-3 p-2 rounded-md bg-primary text-primary-foreground opacity-90 hover:opacity-100 transition-opacity disabled:opacity-50 disabled:cursor-not-allowed"
+            aria-label="Send message">
+            <Send size={18} />
+          </button>
+        )}
       </div>
 
       <p className="text-xs text-muted-foreground mt-2 text-center">
         {isWaitingForResponse
-          ? "Please wait for a response before sending..."
+          ? "Press square button to stop generation"
           : "Press Enter to send, Shift+Enter for a new line"}
       </p>
     </form>

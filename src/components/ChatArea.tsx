@@ -1,4 +1,5 @@
-import React from "react";
+
+import React, { useRef } from "react";
 import { useChat } from "@/context/ChatContext";
 import { Menu } from "lucide-react";
 import MessageList from "./MessageList";
@@ -16,6 +17,49 @@ const ChatArea: React.FC = () => {
     isWaitingForResponse,
     setIsWaitingForResponse,
   } = useChat();
+  
+  // Add a ref to store the current reader
+  const readerRef = useRef<ReadableStreamDefaultReader<Uint8Array> | null>(null);
+
+  const stopGeneration = async () => {
+    // Cancel the reader if it exists
+    if (readerRef.current) {
+      try {
+        await readerRef.current.cancel();
+        readerRef.current = null;
+        
+        // Update the last message to indicate it was stopped
+        if (activeConversationId) {
+          setConversations(prevConversations => {
+            return prevConversations.map(conv => {
+              if (conv.id === activeConversationId) {
+                const messages = [...conv.messages];
+                const lastMessage = messages[messages.length - 1];
+                
+                if (lastMessage && lastMessage.role === "assistant") {
+                  messages[messages.length - 1] = {
+                    ...lastMessage,
+                    content: `${lastMessage.content.replace(" ⬤", "")} (stopped)`,
+                  };
+                }
+                
+                return {
+                  ...conv,
+                  messages,
+                };
+              }
+              return conv;
+            });
+          });
+        }
+        
+        // Reset the waiting state
+        setIsWaitingForResponse(false);
+      } catch (error) {
+        console.error("Error cancelling reader:", error);
+      }
+    }
+  };
 
   const askAI = async (prompt: string) => {
     try {
@@ -39,37 +83,54 @@ const ChatArea: React.FC = () => {
       });
 
       const reader = response.body?.getReader();
+      // Store the reader in the ref so we can cancel it if needed
+      readerRef.current = reader;
+      
       let result = "";
       let finalContext: any[] = [];
 
       if (reader) {
-        while (true) {
-          const { done, value } = await reader.read();
-          if (done) break;
+        try {
+          while (true) {
+            const { done, value } = await reader.read();
+            if (done) break;
 
-          const chunk = new TextDecoder().decode(value);
-          const lines = chunk.split("\n");
+            const chunk = new TextDecoder().decode(value);
+            const lines = chunk.split("\n");
 
-          for (const line of lines) {
-            if (line.trim() === "") continue;
+            for (const line of lines) {
+              if (line.trim() === "") continue;
 
-            try {
-              const parsedChunk = JSON.parse(line);
-              result += parsedChunk.response;
+              try {
+                const parsedChunk = JSON.parse(line);
+                result += parsedChunk.response;
 
-              const formattedResult = formatText(result);
-              updateStreamingMessage(formattedResult, true);
+                const formattedResult = formatText(result);
+                updateStreamingMessage(formattedResult, true);
 
-              if (parsedChunk.context) {
-                finalContext = parsedChunk.context;
+                if (parsedChunk.context) {
+                  finalContext = parsedChunk.context;
+                }
+              } catch (error) {
+                console.error("Error parsing chunk:", error);
               }
-            } catch (error) {
-              console.error("Error parsing chunk:", error);
             }
           }
+        } catch (error) {
+          // This could be a cancellation or other error
+          console.error("Stream reading error:", error);
+          
+          // If it's not a cancellation, we should still clean up
+          if (readerRef.current) {
+            readerRef.current = null;
+          }
+          
+          // We still return what we have
+          return { response: formatText(result), context: finalContext };
         }
       }
 
+      readerRef.current = null;
       const formattedResponse = formatText(result);
       return { response: formattedResponse, context: finalContext };
     } catch (error) {
@@ -214,7 +275,10 @@ const ChatArea: React.FC = () => {
       </div>
 
       <div className="p-4 border-t border-border/50 bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60">
-        <ChatInput onSendMessage={handleSendMessage} />
+        <ChatInput 
+          onSendMessage={handleSendMessage} 
+          onStopGeneration={stopGeneration}
+        />
       </div>
     </div>
   );
