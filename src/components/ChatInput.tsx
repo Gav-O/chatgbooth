@@ -1,4 +1,3 @@
-
 import React, { useState, useRef, useEffect } from "react";
 import { Send, Square } from "lucide-react";
 import { useChat } from "@/context/ChatContext";
@@ -8,7 +7,10 @@ interface ChatInputProps {
   onStopGeneration?: () => void;
 }
 
-const ChatInput: React.FC<ChatInputProps> = ({ onSendMessage, onStopGeneration }) => {
+const ChatInput: React.FC<ChatInputProps> = ({
+  onSendMessage,
+  onStopGeneration,
+}) => {
   const [message, setMessage] = useState("");
   const textareaRef = useRef<HTMLTextAreaElement>(null);
   const { isWaitingForResponse } = useChat();
@@ -56,9 +58,7 @@ const ChatInput: React.FC<ChatInputProps> = ({ onSendMessage, onStopGeneration }
           onChange={e => setMessage(e.target.value)}
           onKeyDown={handleKeyDown}
           placeholder={
-            isWaitingForResponse
-              ? "You can type your next message while waiting..."
-              : "Type a message..."
+            isWaitingForResponse ? "Type a message..." : "Type a message..."
           }
           className={`w-full resize-none py-3 px-4 pr-12 rounded-xl border bg-background focus:outline-none focus:ring-2 focus:ring-primary/50 text-input-shadow transition-shadow ${
             isWaitingForResponse ? "opacity-90" : ""
