@@ -1,4 +1,5 @@
-import React, { createContext, useContext, useState } from "react";
+import React, { createContext, useContext, useState, useEffect } from "react";
+import { loadConversations, saveConversations } from "@/utils/storage";
 
 type MessageType = {
   id: string;
@@ -7,7 +8,7 @@ type MessageType = {
   timestamp: Date;
 };
 
-type ConversationType = {
+export type ConversationType = {
   id: string;
   title: string;
   lastMessageTime: Date;
@@ -48,13 +49,29 @@ const ChatContext = createContext<ChatContextType | undefined>(undefined);
 export const ChatProvider: React.FC<{ children: React.ReactNode }> = ({
   children,
 }) => {
-  const [conversations, setConversations] =
-    useState<ConversationType[]>(initialConversations);
+  // Load conversations from localStorage on initial render
+  const [conversations, setConversations] = useState<ConversationType[]>(() => {
+    const savedConversations = loadConversations();
+    return savedConversations || initialConversations;
+  });
+  
   const [activeConversationId, setActiveConversationId] = useState<
     string | null
-  >("1");
+  >(() => {
+    // If we have saved conversations, set the first one as active
+    const savedConversations = loadConversations();
+    return savedConversations && savedConversations.length > 0 
+      ? savedConversations[0].id 
+      : "1";
+  });
+  
   const [isMobileSidebarOpen, setIsMobileSidebarOpen] = useState(false);
   const [isWaitingForResponse, setIsWaitingForResponse] = useState(false);
+
+  // Save conversations to localStorage whenever they change
+  useEffect(() => {
+    saveConversations(conversations);
+  }, [conversations]);
 
   const toggleMobileSidebar = () => {
     setIsMobileSidebarOpen(prev => !prev);
@@ -155,7 +172,7 @@ export const ChatProvider: React.FC<{ children: React.ReactNode }> = ({
         isMobileSidebarOpen,
         toggleMobileSidebar,
         isWaitingForResponse,
-        setIsWaitingForResponse, // Add this line
+        setIsWaitingForResponse,
         setConversations,
       }}>
       {children}
