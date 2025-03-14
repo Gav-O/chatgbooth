@@ -1,6 +1,8 @@
+
 import React, { useState, useRef, useEffect } from "react";
-import { Send, Square } from "lucide-react";
+import { Send, Square, BookMarked } from "lucide-react";
 import { useChat } from "@/context/ChatContext";
+import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
 
 interface ChatInputProps {
   onSendMessage: (content: string) => void;
@@ -52,15 +54,34 @@ const ChatInput: React.FC<ChatInputProps> = ({
   return (
     <form onSubmit={handleSubmit} className="relative max-w-3xl mx-auto w-full">
       <div className="relative flex items-center">
+        <TooltipProvider>
+          <Tooltip>
+            <TooltipTrigger asChild>
+              <button
+                type="button"
+                className="absolute left-3 p-2 rounded-md text-muted-foreground opacity-70 hover:opacity-100 transition-opacity"
+                onClick={() => setMessage(prev => prev + " #remember ")}
+              >
+                <BookMarked size={18} />
+              </button>
+            </TooltipTrigger>
+            <TooltipContent>
+              <p>Add to global memory with #remember</p>
+            </TooltipContent>
+          </Tooltip>
+        </TooltipProvider>
+
         <textarea
           ref={textareaRef}
           value={message}
           onChange={e => setMessage(e.target.value)}
           onKeyDown={handleKeyDown}
           placeholder={
-            isWaitingForResponse ? "Type a message..." : "Type a message..."
+            isWaitingForResponse 
+              ? "Type a message..." 
+              : "Type a message or use #remember to store information globally"
           }
-          className={`w-full resize-none py-3 px-4 pr-12 rounded-xl border bg-background focus:outline-none focus:ring-2 focus:ring-primary/50 text-input-shadow transition-shadow ${
+          className={`w-full resize-none py-3 px-4 pl-12 pr-12 rounded-xl border bg-background focus:outline-none focus:ring-2 focus:ring-primary/50 text-input-shadow transition-shadow ${
             isWaitingForResponse ? "opacity-90" : ""
           }`}
           rows={1}

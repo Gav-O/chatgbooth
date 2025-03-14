@@ -1,5 +1,5 @@
 import React, { createContext, useContext, useState, useEffect } from "react";
-import { loadConversations, saveConversations } from "@/utils/storage";
+import { loadConversations, saveConversations, saveMemory, loadMemories } from "@/utils/storage";
 
 type MessageType = {
   id: string;
@@ -32,6 +32,9 @@ interface ChatContextType {
   isWaitingForResponse: boolean;
   setIsWaitingForResponse: React.Dispatch<React.SetStateAction<boolean>>; // Add this line
   setConversations: React.Dispatch<React.SetStateAction<ConversationType[]>>;
+  processMessageForMemory: (content: string) => string;
+  globalMemories: any[];
+  refreshGlobalMemories: () => void;
 }
 
 const initialConversations: ConversationType[] = [
@@ -67,14 +70,54 @@ export const ChatProvider: React.FC<{ children: React.ReactNode }> = ({
   
   const [isMobileSidebarOpen, setIsMobileSidebarOpen] = useState(false);
   const [isWaitingForResponse, setIsWaitingForResponse] = useState(false);
+  const [globalMemories, setGlobalMemories] = useState<any[]>([]);
+
+  // Load global memories on initial render
+  useEffect(() => {
+    refreshGlobalMemories();
+  }, []);
 
   // Save conversations to localStorage whenever they change
   useEffect(() => {
     saveConversations(conversations);
   }, [conversations]);
 
+  const refreshGlobalMemories = () => {
+    const memories = loadMemories() || [];
+    setGlobalMemories(memories);
+  };
+
   const toggleMobileSidebar = () => {
     setIsMobileSidebarOpen(prev => !prev);
+  };
+
+  /**
+   * Process message content for memory storage
+   * Returns the cleaned message content (without #remember)
+   */
+  const processMessageForMemory = (content: string): string => {
+    const rememberRegex = /#remember\s+(.*?)(?=\s*#|\s*$)/gs;
+    let cleanedContent = content;
+    
+    // Extract all memory segments
+    const matches = content.matchAll(rememberRegex);
+    for (const match of matches) {
+      if (match[1] && match[1].trim()) {
+        // Save this segment to global memory
+        saveMemory(match[1].trim());
+        
+        // Remove the #remember tag from the original message
+        cleanedContent = cleanedContent.replace(match[0], match[1]);
+      }
+    }
+    
+    // If the entire message was a memory command, keep the content but remove the command
+    if (content.trim().startsWith('#remember ')) {
+      cleanedContent = content.replace(/#remember\s+/, '');
+    }
+    
+    refreshGlobalMemories();
+    return cleanedContent;
   };
 
   const addMessage = (
@@ -88,11 +131,18 @@ export const ChatProvider: React.FC<{ children: React.ReactNode }> = ({
       .toString(36)
       .substring(2, 9)}`;
 
+    // If it's a user message, process it for memory storage
+    let processedContent = message.content;
+    if (message.role === "user") {
+      processedContent = processMessageForMemory(message.content);
+    }
+
     setConversations(prevConversations => {
       return prevConversations.map(conv => {
         if (conv.id === activeConversationId) {
           const newMessage = {
             ...message,
+            content: processedContent,
             id: uniqueId, // Use the unique ID
             timestamp: new Date(),
           };
@@ -174,6 +224,9 @@ export const ChatProvider: React.FC<{ children: React.ReactNode }> = ({
         isWaitingForResponse,
         setIsWaitingForResponse,
         setConversations,
+        processMessageForMemory,
+        globalMemories,
+        refreshGlobalMemories,
       }}>
       {children}
     </ChatContext.Provider>

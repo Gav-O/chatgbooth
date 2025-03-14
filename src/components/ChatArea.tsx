@@ -1,8 +1,10 @@
+
 import React, { useRef } from "react";
 import { useChat } from "@/context/ChatContext";
 import { Menu } from "lucide-react";
 import MessageList from "./MessageList";
 import ChatInput from "./ChatInput";
+import MemoryManager from "./MemoryManager";
 import { formatText } from "@/utils/formatText";
 
 const ChatArea: React.FC = () => {
@@ -16,6 +18,7 @@ const ChatArea: React.FC = () => {
     setConversations,
     isWaitingForResponse,
     setIsWaitingForResponse,
+    globalMemories,
   } = useChat();
 
   // Add a ref to store the current reader
@@ -97,6 +100,13 @@ const ChatArea: React.FC = () => {
       // Initialize the ref with the current context
       finalContextRef.current = activeConversation?.context || [];
 
+      // Prepare global memories to include in the prompt if there are any
+      let enhancedPrompt = prompt;
+      if (globalMemories && globalMemories.length > 0) {
+        const memoryText = globalMemories.map(m => m.content).join('\n');
+        enhancedPrompt = `[User's stored memories:\n${memoryText}\n]\n\nUser: ${prompt}`;
+      }
+
       const response = await fetch("http://localhost:11434/api/generate", {
         method: "POST",
         headers: {
@@ -104,7 +114,7 @@ const ChatArea: React.FC = () => {
         },
         body: JSON.stringify({
           model: "llama3.2",
-          prompt: prompt,
+          prompt: enhancedPrompt,
           stream: true,
           context: activeConversation?.context || [],
         }),
@@ -313,6 +323,10 @@ const ChatArea: React.FC = () => {
           <h2 className="text-lg font-medium">
             {activeConversation ? activeConversation.title : "New Chat"}
           </h2>
+        </div>
+        
+        <div className="ml-auto">
+          <MemoryManager />
         </div>
       </header>
 
