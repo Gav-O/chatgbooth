@@ -335,7 +335,7 @@ const ChatArea: React.FC = () => {
           <MessageList messages={activeConversation.messages} />
         ) : (
           <div className="flex flex-col items-center justify-center h-full p-4 text-center">
-            <div className="text-6xl mb-4">🌿</div>
+            <div className="text-6xl mb-4">⌘</div>
             <h3 className="text-2xl font-medium mb-2">Welcome to Moss</h3>
             <p className="text-muted-foreground max-w-md">
               Start a new conversation by typing a message below or select an
