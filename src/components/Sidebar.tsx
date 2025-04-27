@@ -1,4 +1,3 @@
-
 import React from "react";
 import { useChat } from "@/context/ChatContext";
 import { PlusCircle, X } from "lucide-react";
@@ -49,7 +48,7 @@ const Sidebar: React.FC = () => {
 
       {/* Footer */}
       <div className="p-4 border-t border-sidebar-border text-xs text-sidebar-foreground/70">
-        <p>© 2025 ChatGBHO</p>
+        <p>© 2025 Moss</p>
       </div>
     </div>
   );
