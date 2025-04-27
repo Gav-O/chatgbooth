@@ -1,4 +1,3 @@
-
 import React from "react";
 import { useChat } from "@/context/ChatContext";
 import { PlusCircle, X } from "lucide-react";
@@ -13,8 +12,8 @@ const Sidebar: React.FC = () => {
       {/* Header */}
       <div className="flex items-center justify-between px-4 h-16 border-b border-sidebar-border">
         <div className="flex items-center space-x-2">
-          <span className="text-2xl font-light">⌘</span>
-          <h1 className="text-xl font-semibold tracking-tight">ChatGBHO</h1>
+          <span className="text-2xl font-light">🌿</span>
+          <h1 className="text-xl font-semibold tracking-tight">Moss</h1>
         </div>
 
         <button
